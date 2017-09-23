@@ -51,9 +51,11 @@ include ../../mk/spksrc.copy.mk
 strip: copy
 include ../../mk/spksrc.strip.mk
 
+icon: strip
+include ../../mk/spksrc.icon.mk
 
 ### Packaging rules
-$(WORK_DIR)/package.tgz: strip
+$(WORK_DIR)/package.tgz: icon
 	$(create_target_dir)
 	@[ -f $@ ] && rm $@ || true
 	(cd $(STAGING_DIR) && tar cpzf $@ --owner=root --group=root *)
@@ -134,14 +136,15 @@ endif
 ifneq ($(strip $(CONF_DIR)),)
 	@echo support_conf_folder=\"yes\" >> $@
 endif
+ifneq ($(strip $(SPK_CONFLICT)),)
+	@echo install_conflict_packages=\"$(SPK_CONFLICT)\" >> $@
+endif
 	@echo checksum=\"`md5sum $(WORK_DIR)/package.tgz | cut -d" " -f1`\" >> $@
+
 ifneq ($(strip $(DEBUG)),)
 INSTALLER_OUTPUT = >> /root/$${PACKAGE}-$${SYNOPKG_PKG_STATUS}.log 2>&1
 else
 INSTALLER_OUTPUT = > $$SYNOPKG_TEMP_LOGFILE
-endif
-ifneq ($(strip $(SPK_CONFLICT)),)
-	@echo install_conflict_packages=\"$(SPK_CONFLICT)\" >> $@
 endif
 
 # Wizard
@@ -184,11 +187,11 @@ $(WORK_DIR)/PACKAGE_ICON.PNG: $(SPK_ICON)
 	@[ -f $@ ] && rm $@ || true
 	(convert $(SPK_ICON) -thumbnail 72x72 - >> $@)
 
-$(WORK_DIR)/PACKAGE_ICON_120.PNG: $(SPK_ICON)
+$(WORK_DIR)/PACKAGE_ICON_256.PNG: $(SPK_ICON)
 	$(create_target_dir)
-	@$(MSG) "Creating PACKAGE_ICON_120.PNG for $(SPK_NAME)"
+	@$(MSG) "Creating PACKAGE_ICON_256.PNG for $(SPK_NAME)"
 	@[ -f $@ ] && rm $@ || true
-	(convert $(SPK_ICON) -thumbnail 120x120 - >> $@)
+	(convert $(SPK_ICON) -thumbnail 256x256 - >> $@)
 
 # Scripts
 DSM_SCRIPTS_DIR = $(WORK_DIR)/scripts
@@ -245,7 +248,7 @@ $(DSM_SCRIPTS_DIR)/%.sc: $(filter %.sc,$(FWPORTS))
 $(DSM_SCRIPTS_DIR)/%: $(filter %.sh,$(ADDITIONAL_SCRIPTS))
 	@$(dsm_script_copy)
 
-SPK_CONTENT = package.tgz INFO PACKAGE_ICON.PNG PACKAGE_ICON_120.PNG scripts
+SPK_CONTENT = package.tgz INFO PACKAGE_ICON.PNG PACKAGE_ICON_256.PNG scripts
 
 .PHONY: checksum
 checksum:
@@ -276,7 +279,7 @@ ifneq ($(strip $(DSM_LICENSE)),)
 SPK_CONTENT += LICENSE
 endif
 
-$(SPK_FILE_NAME): $(WORK_DIR)/package.tgz $(WORK_DIR)/INFO checksum $(WORK_DIR)/PACKAGE_ICON.PNG $(WORK_DIR)/PACKAGE_ICON_120.PNG $(DSM_SCRIPTS) wizards $(DSM_LICENSE) conf
+$(SPK_FILE_NAME): $(WORK_DIR)/package.tgz $(WORK_DIR)/INFO checksum $(WORK_DIR)/PACKAGE_ICON.PNG $(WORK_DIR)/PACKAGE_ICON_256.PNG $(DSM_SCRIPTS) wizards $(DSM_LICENSE) conf
 	$(create_target_dir)
 	(cd $(WORK_DIR) && tar cpf $@ --group=root --owner=root $(SPK_CONTENT))
 
@@ -301,7 +304,7 @@ all: package
 
 dependency-tree:
 	@echo `perl -e 'print "\\\t" x $(MAKELEVEL),"\n"'`+ $(NAME)
-	@for depend in $(DEPENDS) ; \
+	@for depend in $(BUILD_DEPENDS) $(DEPENDS) ; \
 	do \
 	  $(MAKE) --no-print-directory -C ../../$$depend dependency-tree ; \
 	done
@@ -432,7 +435,7 @@ kernel-required:
 	@if [ -n "$(REQ_KERNEL)" ]; then \
 	  exit 1 ; \
 	fi
-	@for depend in $(DEPENDS) ; do \
+	@for depend in $(BUILD_DEPENDS) $(DEPENDS) ; do \
 	  if $(MAKE) --no-print-directory -C ../../$$depend kernel-required >/dev/null 2>&1 ; then \
 	    exit 0 ; \
 	  else \
