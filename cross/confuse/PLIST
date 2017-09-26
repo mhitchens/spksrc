@@ -1,0 +1,6 @@
+lnk:lib/libconfuse.so
+lnk:lib/libconfuse.so.2
+lib:lib/libconfuse.so.2.0.0
+rsc:share/locale/de/LC_MESSAGES/confuse.mo
+rsc:share/locale/fr/LC_MESSAGES/confuse.mo
+rsc:share/locale/sv/LC_MESSAGES/confuse.mo

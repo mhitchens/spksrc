@@ -13,6 +13,6 @@ LICENSE  = https://raw.githubusercontent.com/lathiat/avahi/v$(PKG_VERS)/LICENSE
 
 GNU_CONFIGURE = 1
 
-CONFIGURE_ARGS = --with-distro=none --disable-glib --disable-gobject --disable-qt3 --disable-qt4 --disable-gtk --disable-gtk3 --disable-gdbm --disable-pygobject --disable-python-dbus --disable-mono
+CONFIGURE_ARGS = --with-distro=none --disable-glib --disable-gobject --disable-qt3 --disable-qt4 --disable-gtk --disable-gtk3 --disable-gdbm --disable-pygobject --disable-python-dbus --disable-mono --disable-stack-protector
 
 include ../../mk/spksrc.cross-cc.mk

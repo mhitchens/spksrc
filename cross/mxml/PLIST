@@ -1,0 +1,4 @@
+bin:bin/mxmldoc
+lnk:lib/libmxml.so
+lnk:lib/libmxml.so.1
+lib:lib/libmxml.so.1.5
